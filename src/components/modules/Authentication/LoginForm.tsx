@@ -1,19 +1,41 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import Password from "@/components/ui/Password";
 import { cn } from "@/lib/utils";
+import { useLoginMutation } from "@/redux/features/auth/auth.api";
 import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function LoginForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-
   const form = useForm();
+  const navigate = useNavigate();
+  const [login] = useLoginMutation();
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     console.log(data);
+    try {
+      const res = await login(data).unwrap();
+      console.log(res);
+      if (res.success) {
+        toast.success("Logged in successfully");
+        navigate("/");
+      }
+      
+    } catch (err) {
+      console.error(err);
+      if (err.data.message === "Phone Number dose not Exist") {
+        toast.error("Phone Number dose not Exist");
+      }
+      if (err.data.message === "Incorrect Password") {
+        toast.error("Incorrect Password");
+      }
+      
+    }
     
   }
 
@@ -22,7 +44,7 @@ export default function LoginForm({
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          Enter your email below to login to your account
+          Enter your phone below to login to your account
         </p>
       </div>
       <div className="grid gap-6">
@@ -30,13 +52,13 @@ export default function LoginForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="email"
+              name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="john@example.com"
+                      placeholder="Number"
                       {...field}
                       value={field.value || ""}
                     />
@@ -53,12 +75,13 @@ export default function LoginForm({
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
+                    {/* <Input
                       type="password"
                       placeholder="********"
                       {...field}
                       value={field.value || ""}
-                    />
+                    /> */}
+                    <Password {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

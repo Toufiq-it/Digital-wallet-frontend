@@ -7,7 +7,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Password from "@/components/ui/Password";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useRegisterMutation } from "@/redux/features/auth/auth.api";
+import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -18,12 +20,24 @@ const registerSchema = z
       })
       .max(50),
     email: z.email(),
-    phone: z.string().min(11, { error: "Please Your valid Number" }),
+    phone: z.string({ error: "Phone Number must be string" })
+        .regex(/^(?:\+8801\d{9}|01\d{9})$/, {
+            message: "Phone number must be valid for Bangladesh. Format: +8801XXXXXXXXX or 01XXXXXXXXX",
+        }),
     role: z.string(),
-    password: z.string().min(8, { error: "Password is too short" }),
+    password: z.string().min(8, { error: "Password must be at least 8 characters long" }),
     confirmPassword: z
-      .string()
-      .min(8, { error: "Confirm Password is too short" }),
+      .string({ error: "Password must be string" })
+        .min(8, { message: "Password must be at least 8 characters long." })
+        .regex(/^(?=.*[A-Z])/, {
+            message: "Password must contain at least 1 uppercase letter.",
+        })
+        .regex(/^(?=.*[!@#$%^&*])/, {
+            message: "Password must contain at least 1 special character.",
+        })
+        .regex(/^(?=.*\d)/, {
+            message: "Password must contain at least 1 number.",
+        }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Password do not match",
@@ -35,6 +49,8 @@ export default function RegisterForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
+  const [register] = useRegisterMutation();
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -49,7 +65,25 @@ export default function RegisterForm({
   });
 
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
-    console.log(data);
+
+    const userInfo = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role,
+      password: data.password,
+    };
+
+    try {
+      const res = await register(userInfo).unwrap();
+      console.log(res);
+      toast.success("User created successfully");
+      navigate("/login");
+
+    } catch (error) {
+      console.error(error);
+      
+    }
 
   }
 
@@ -113,7 +147,6 @@ export default function RegisterForm({
                   <FormControl>
                     <Input
                       placeholder="Number"
-                      
                       {...field}
                     />
 
