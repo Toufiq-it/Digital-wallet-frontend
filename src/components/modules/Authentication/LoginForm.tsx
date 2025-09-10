@@ -26,7 +26,8 @@ export default function LoginForm({
         navigate("/");
       }
       
-    } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error(err);
       if (err.data.message === "Phone Number dose not Exist") {
         toast.error("Phone Number dose not Exist");
@@ -34,9 +35,7 @@ export default function LoginForm({
       if (err.data.message === "Incorrect Password") {
         toast.error("Incorrect Password");
       }
-      
     }
-    
   }
 
   return (
