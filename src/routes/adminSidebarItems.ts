@@ -1,7 +1,10 @@
 import Agents from "@/pages/Admin/Agents";
-import Analytics from "@/pages/Admin/Analytics";
+// import Analytics from "@/pages/Admin/Analytics";
 import Users from "@/pages/Admin/Users";
 import type { ISidebarItem } from "@/types";
+import { lazy } from "react";
+
+const Analytics = lazy(() => import("@/pages/Admin/Analytics"));
 
 export const adminSidebarItems : ISidebarItem[] = [
     {

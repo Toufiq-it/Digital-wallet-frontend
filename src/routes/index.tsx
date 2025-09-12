@@ -4,9 +4,14 @@ import About from "@/pages/About";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import { generateRoutes } from "@/utils/generateRoutes";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { adminSidebarItems } from "./adminSidebarItems";
 import { userSidebarItems } from "./userSidebarItems";
+import { agentSidebarItems } from "./agentSidebarItesms";
+import { role } from "@/constants/role";
+import type { TRole } from "@/types";
+import { withAuth } from "@/utils/withAuth";
+import Unauthorized from "@/pages/Unauthorized";
 
 export const router = createBrowserRouter([
     {
@@ -14,22 +19,32 @@ export const router = createBrowserRouter([
         path: "/",
         children: [
             {
-                Component: About,
+                Component: withAuth(About),
                 path: "about",
             }
         ]
     },
     {
-        Component: DashboardLayout,
+        Component: withAuth(DashboardLayout, role.admin as TRole),
         path: "/admin",
         children: [
+            { index: true, element: <Navigate to="/admin/analytics" /> },
             ...generateRoutes(adminSidebarItems),
         ]
     },
     {
-        Component: DashboardLayout,
+        Component: withAuth(DashboardLayout, role.agent as TRole),
+        path: "/agent",
+        children: [
+            { index: true, element: <Navigate to="/agent/cash-in" /> },
+            ...generateRoutes(agentSidebarItems),
+        ]
+    },
+    {
+        Component: withAuth(DashboardLayout, role.user as TRole),
         path: "/user",
         children: [
+            { index: true, element: <Navigate to="/user/add-money" /> },
             ...generateRoutes(userSidebarItems),
         ]
     },
@@ -40,6 +55,10 @@ export const router = createBrowserRouter([
     {
         Component: Register,
         path: "/register",
+    },
+    {
+        Component: Unauthorized,
+        path: "/unauthorized",
     },
 
 ])
